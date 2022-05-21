@@ -2,7 +2,7 @@
   <div @click="closeNav" ref="overlay" id="overlay" class="bg"></div>
   <header class="white">
       <i @click="openNav" class="fas fa-bars fa-lg pointer openNav mt-1 ml-1"></i>
-    <span class="siteName">Цитаты древних философов</span>
+    <NuxtLink to="/"><span class="siteName white">Цитаты великих философов</span></NuxtLink>
        <span @click="logOut"  class="mr-1 pointer">Выход</span>
   </header>
   <div ref="sideNav" class="sidenav">
@@ -10,7 +10,7 @@
       <i class="fas fa-lg  fa-times pointer white"></i>
     </span>
     <div class="center mb-2">
-      <small class="white"><strong>Цитаты древних философов</strong></small>
+      <NuxtLink to="/"><small class="white"><strong>Цитаты великих философов</strong></small></NuxtLink>
     </div>
 
     <div>

@@ -103,7 +103,7 @@ definePageMeta({
   layout: 'admin'
 })
 
-const {data, error} = await useAsyncData('adminQuotes', () => $fetch('/api/admin/quotes/index'));
+const {data, error} = await useAsyncData('adminQuotes', () => $fetch('/api/admin/quotes'));
 
 const filtering = ref([]);
 const toFilter = ref(false);
@@ -150,8 +150,8 @@ async function storeItem() {
     $showToast('Обработка...', 'info', 2000);
 
     if (mode.value === 'edit') {
-      const {result} = await $fetch('/api/admin/quotes/edit', {
-        method: 'POST',
+      const result = await $fetch('/api/admin/quotes/edit', {
+        method: 'PUT',
         body: formData,
       })
       const ind = data.value.quotes.findIndex(item => item.id === result.id);
@@ -159,7 +159,7 @@ async function storeItem() {
     }
 
     if (mode.value === 'add') {
-      const {result} = await $fetch('/api/admin/quotes/add', {
+      const result = await $fetch('/api/admin/quotes/add', {
         method: 'POST',
         body: formData,
       })
@@ -203,7 +203,7 @@ async function removeItem(dbId) {
       $showToast('Обработка...', 'info', 2000);
 
       const {id} = await $fetch('/api/admin/quotes/remove', {
-        method: 'POST',
+        method: 'DELETE',
         body: formData,
       })
 

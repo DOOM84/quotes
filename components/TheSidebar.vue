@@ -23,9 +23,9 @@
         </div>
       </div>
       <div class="mini-posts mt-3">
-        <article v-for="author in authors">
-          <NuxtLink class="image img-center" :to="'/author/'+author.id">
-            <img :src="author.image" alt="">
+        <article class="center" v-for="author in authors">
+          <NuxtLink class="link-image" :to="'/author/'+author.id">
+            <img :src="author.thumbnail" alt="">
           </NuxtLink>
           <p class="center">{{author.name}}</p>
         </article>
@@ -77,7 +77,7 @@ async function search(){
 
   if(!cached.value.length){
 
-    const {quotes} = await $fetch('/api/search',
+    const quotes = await $fetch('/api/search',
         /*{params: {term: searchTerm.value}}*/);
 
     cached.value = [...quotes];

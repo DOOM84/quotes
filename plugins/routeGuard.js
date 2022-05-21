@@ -1,17 +1,10 @@
-import getCookie from "~/helpers/getCookie";
-
 export default defineNuxtPlugin(async ({ssrContext, $logOut}) => {
     const router = useRouter();
-
-    let token = null;
-    const user = useState("user");
 
     if (process.server && ssrContext) {
 
         const {res, url} = ssrContext;
         const {path} = router.resolve(url);
-
-        token = getCookie(ssrContext.req.headers.cookie, 'token');
 
         const toName = path.split("/");
 
@@ -19,8 +12,9 @@ export default defineNuxtPlugin(async ({ssrContext, $logOut}) => {
 
             if (toName[1] === 'login') {
 
-                    const {access} = await $fetch('/api/check',
-                        {params: {token: token}})
+                const {access} = await $fetch('/api/check', {
+                    headers: useRequestHeaders(["cookie"]),
+                });
 
                     if(access){
                         res.writeHead(302, {Location: "/admin"});
@@ -30,23 +24,9 @@ export default defineNuxtPlugin(async ({ssrContext, $logOut}) => {
 
             if (toName[1] === 'admin') {
 
-                //try {
-                if (!token) {
-                    await Promise.reject(Error());
-                }
-
-                /*const data = await $fetch('/api/user',
-                    {params: {token: token}})
-
-                if (data) {
-                    user.value = {
-                        name: data.login,
-                        //level: data.level,
-                    };
-                }*/
-
-                const {access} = await $fetch('/api/check',
-                    {params: {token: token}})
+                const {access} = await $fetch('/api/check', {
+                    headers: useRequestHeaders(["cookie"]),
+                });
 
                 if (!access) {
                     await Promise.reject(Error());
@@ -55,7 +35,7 @@ export default defineNuxtPlugin(async ({ssrContext, $logOut}) => {
         } catch (e) {
             $logOut();
             if (toName[1] === 'admin') {
-                res.writeHead(302, {Location: "/login"});
+                res.writeHead(302, {Location: "/404"});
                 res.end();
             }
         }
@@ -90,7 +70,7 @@ export default defineNuxtPlugin(async ({ssrContext, $logOut}) => {
 
                     if (!access) {
                         $logOut();
-                        return next('/');
+                        return next('/404');
                     } else {
                         return next();
                     }

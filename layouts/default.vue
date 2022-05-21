@@ -1,9 +1,9 @@
 <template>
   <div>
-  <TheHeader :authors="data.authors"/>
+  <TheHeader :authors="authors"/>
   <main id="home" class="d-flex">
     <div ref="sidenav" class="side">
-     <TheSidebar :authors="data.authors"/>
+     <TheSidebar :authors="authors"/>
     </div>
 
     <div class="relative">
@@ -36,7 +36,7 @@ watch(route, () => {
   document.body.classList.remove('noScroll');
 })
 
-const {data, error} = await useAsyncData('side', () => $fetch('/api/side'));
+const {data: authors, error} = await useAsyncData('side', () => $fetch('/api/side'));
 
 function closeNav() {
 

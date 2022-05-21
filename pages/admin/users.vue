@@ -51,7 +51,7 @@
 
     <ClientOnly>
     <AdminDtable @endFilter="toFilter = false"
-                 :data="data.users"
+                 :data="users"
                  :toFilter="toFilter"
                  :filtering="filtering"
                  :toSearch="['displayName', 'email']">
@@ -135,7 +135,7 @@ function filter(fTerm, dir) {
   toFilter.value = true;
 }
 
-const {data, error} = await useAsyncData('users', () => $fetch('/api/admin/users/index'));
+const {data: users, error} = await useAsyncData('users', () => $fetch('/api/admin/users'));
 
 const userToUpdate = ref({customClaims: {admin: false}, disabled: false});
 const showDlg = ref(false);
@@ -169,20 +169,20 @@ async function storeItem() {
     $showToast('Обработка...', 'info', 2000);
 
     if (mode.value === 'edit') {
-      const {result} = await $fetch('/api/admin/users/edit', {
-        method: 'POST',
+      const result = await $fetch('/api/admin/users/edit', {
+        method: 'PUT',
         body: formData,
       })
-      const ind = data.value.users.findIndex(item => item.uid === result.uid);
+      const ind = users.value.findIndex(item => item.uid === result.uid);
 
       delete userToUpdate.value.password;
       delete userToUpdate.value.passwordConfirmation;
 
-      data.value.users[ind] = userToUpdate.value;
+      users.value[ind] = userToUpdate.value;
     }
 
     if (mode.value === 'add') {
-      const {result} = await $fetch('/api/admin/users/add', {
+      const result = await $fetch('/api/admin/users/add', {
         method: 'POST',
         body: formData,
       })
@@ -192,7 +192,7 @@ async function storeItem() {
       delete userToUpdate.value.password;
       delete userToUpdate.value.passwordConfirmation;
 
-      data.value.users.unshift(userToUpdate.value);
+      users.value.unshift(userToUpdate.value);
 
     }
 
@@ -236,11 +236,11 @@ async function removeItem(userId) {
       $showToast('Обработка...', 'info', 2000);
 
       const {id} = await $fetch('/api/admin/users/remove', {
-        method: 'POST',
+        method: 'DELETE',
         body: formData,
       })
 
-      data.value.users.splice(data.value.users.findIndex(item => item.uid === id), 1);
+      users.value.splice(users.value.findIndex(item => item.uid === id), 1);
 
       filter(null, null);
 

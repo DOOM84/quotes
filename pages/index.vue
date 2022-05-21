@@ -17,9 +17,12 @@
         <img class="w100" src="/img/socrate.jpg" alt="">
       </div>
     </div>
-    <div class="quotes-box">
-      <ClientOnly>
-        <div class="quote" v-for="quote in data.quotes">
+    <ClientOnly>
+    <div v-if="pending" class="center">
+      <i class="loader mt-2 fas fa-circle-notch fa-spin fa-3x"></i>
+    </div>
+    <div v-else class="quotes-box">
+        <div class="quote" v-for="quote in quotes">
           <div v-html="quote.text"></div>
           <div class="right mt-1">
             <NuxtLink class="dotted-link" :to="'/author/'+quote.author_id">
@@ -27,13 +30,14 @@
             </NuxtLink>
           </div>
         </div>
-      </ClientOnly>
     </div>
-  </div>
+    </ClientOnly>
+    </div>
 </template>
 
 <script setup>
-const {data, error} = await useAsyncData('index', () => $fetch('/api/index'));
+const {data: quotes, error, pending} = await useLazyAsyncData('main', () => $fetch('/api/main'),
+    {initialCache: false})
 </script>
 
 <style scoped>

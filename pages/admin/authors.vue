@@ -16,7 +16,7 @@
 
     <AdminModalWrap @closeDlg="closeModal" mWidth="1000px" origWidth="100%" :showDlg="showDlg">
       <div v-if="mode === 'edit'" class="flexCentered">
-        <img class="pic-thumb" :src="authorToUpdate.image" alt="">
+        <img class="pic-thumb" :src="authorToUpdate.thumbnail" alt="">
       </div>
 
       <div class="form-group">
@@ -59,7 +59,7 @@
     </AdminModalWrap>
     <ClientOnly>
     <AdminDtable @endFilter="toFilter = false"
-                 :data="data.authors"
+                 :data="authors"
                  :toFilter="toFilter"
                  :filtering="filtering"
                  :toSearch="['name', 'born', 'death']">
@@ -116,7 +116,7 @@
           {{row.quotes}}
         </table-body>
         <table-body>
-          <img height="210" :src="row.image" alt="">
+          <img height="210" :src="row.thumbnail" alt="">
         </table-body>
         <table-body>
           {{row.born}}
@@ -154,7 +154,7 @@ definePageMeta({
 
 
 
-const {data, error} = await useAsyncData('adminAuthors', () => $fetch('/api/admin/authors/index'));
+const {data: authors, error} = await useAsyncData('adminAuthors', () => $fetch('/api/admin/authors'));
 
 const filtering = ref([]);
 const toFilter = ref(false);
@@ -210,20 +210,20 @@ async function storeItem() {
     $showToast('Обработка...', 'info', 2000);
 
     if (mode.value === 'edit') {
-      const {result} = await $fetch('/api/admin/authors/edit', {
-        method: 'POST',
+      const result = await $fetch('/api/admin/authors/edit', {
+        method: 'PUT',
         body: formData,
       })
-      const ind = data.value.authors.findIndex(item => item.id === result.id);
-      data.value.authors[ind] = result;
+      const ind = authors.value.findIndex(item => item.id === result.id);
+      authors.value[ind] = result;
     }
 
     if (mode.value === 'add') {
-      const {result} = await $fetch('/api/admin/authors/add', {
+      const result = await $fetch('/api/admin/authors/add', {
         method: 'POST',
         body: formData,
       })
-      data.value.authors.unshift(result);
+      authors.value.unshift(result);
     }
 
     filter(null, null);
@@ -263,11 +263,11 @@ async function removeItem(dbId) {
       $showToast('Обработка...', 'info', 2000);
 
       const {id} = await $fetch('/api/admin/authors/remove', {
-        method: 'POST',
+        method: 'DELETE',
         body: formData,
       })
 
-      data.value.authors.splice(data.value.authors.findIndex(item => item.id === id), 1);
+      authors.value.splice(authors.value.findIndex(item => item.id === id), 1);
 
       filter(null, null);
 

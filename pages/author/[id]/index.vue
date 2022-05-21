@@ -1,31 +1,40 @@
 <template>
   <section class="mb-3">
-    <header class="main mt-3">
-      <h2>{{data.author.name}} ({{data.author.born}} - {{data.author.death}})</h2>
-    </header>
+    <ClientOnly>
+      <div v-if="pending || error" class="center loader mt-2">
+        <i class="fas fa-circle-notch fa-spin fa-3x grey"></i>
+      </div>
+      <div v-else>
+        <header class="main mt-3">
+          <h2>{{ data.author.name }} ({{ data.author.born }} - {{ data.author.death }})</h2>
+        </header>
 
-    <span class="image main"><img :src="data.author.image" alt=""></span>
+        <span class="main"><img :src="data.author.image" alt=""></span>
 
-    <transition name="bio">
-      <div v-if="showBio" class="mb-3 bio" id="bioFull" v-html="data.author.bio" />
-    </transition>
+        <transition name="bio">
+          <div v-if="showBio" class="mb-2 bio" id="bioFull" v-html="data.author.bio"/>
+        </transition>
 
 
-    <button @click="toggleBio" id="showBio" class="button small" >{{btnTitle}}</button>
+        <div class="showBio">
+          <button @click="toggleBio" class="button small">{{ btnTitle }}</button>
+        </div>
 
-    <hr class="major">
-    <h2>Цитаты:</h2>
-    <div id="quotes" class="mb-3 font-color">
-      <template v-for="(quote, i) in data.quotes">
-        <div v-html="quote.text" />
-        <hr v-if="(i+1) !== data.quotes.length" class="major">
-      </template>
-    </div>
+        <hr class="major">
+        <h2>Цитаты:</h2>
+        <div id="quotes" class="mb-3 font-color">
+          <template v-for="(quote, i) in data.quotes">
+            <div v-html="quote.text"/>
+            <hr v-if="(i+1) !== data.quotes.length" class="major">
+          </template>
+        </div>
 
-    <button :disabled="loading" @click.prevent="loadQuotes" id="showMore" class="button small special fit w100">
-      Показать еще <i v-if="loading" class="fas fa-circle-notch fa-spin"></i>
-    </button>
+        <button :disabled="loading" @click.prevent="loadQuotes" id="showMore" class="button small special fit w100">
+          Показать еще <i v-if="showIcon" class="fas fa-circle-notch fa-spin"></i>
+        </button>
+      </div>
 
+    </ClientOnly>
   </section>
 </template>
 
@@ -37,10 +46,32 @@ const author = useAuthor();
 
 const route = useRoute();
 
-const {data, error} = await useAsyncData('author', () => $fetch('/api/author',
-    {params: {id: route.params.id}}))
+const router = useRouter();
 
-author.value = data.value.author.name;
+const {data, error, pending} = await useLazyAsyncData('author', () => $fetch('/api/author',
+    {params: {id: route.params.id}}), {initialCache: false})
+
+if (process.server && error?.value) {
+  throwError(error.value)
+}
+
+watch(error, (newError) => {
+  if (!!newError) {
+    router.replace('/404')
+  }
+})
+
+watch(data, (newData) => {
+  if (newData) {
+    author.value = newData.author.name
+  }
+})
+
+const title = computed(() => 'Цитаты великих философов - ' + (data.value ? data.value.author.name : ''))
+
+useHead({
+  title: title
+})
 
 watch(route, () => {
   author.value = '';
@@ -48,32 +79,38 @@ watch(route, () => {
 
 const showBio = ref(false);
 const loading = ref(false);
+const showIcon = ref(false);
 
-
-function toggleBio(){
-
+function toggleBio() {
   showBio.value = !showBio.value
-
 }
 
 const btnTitle = computed(() => !showBio.value ? 'Показать биографию' : 'Скрыть биографию');
 
-async function loadQuotes(){
+async function loadQuotes() {
+
+  if(loading.value){return}
 
   loading.value = true;
+  showIcon.value = true;
 
-  const {quotes} = await $fetch('/api/loadQuotes',
-      {params: {id: route.params.id, offset: data.value.quotes.length}});
+  try {
+    const quotes = await $fetch('/api/loadQuotes',
+        {params: {id: route.params.id, offset: data.value.quotes.length}});
 
-  if(quotes.length){
-    data.value.quotes.push(...quotes);
-    loading.value = false;
+    if (quotes.length) {
+      data.value.quotes.push(...quotes);
+      loading.value = false;
+      showIcon.value = false;
+    }else{
+      loading.value = true;
+      showIcon.value = false;
+    }
+  }catch (e) {
+    showIcon.value = false;
   }
 }
 
-useMeta({
-  title: 'Цитаты древних философов - ' +  data.value.author.name
-})
 
 </script>
 
@@ -148,6 +185,12 @@ useMeta({
 @media(max-width: 480px) {
   .main img {
     width: 50%;
+  }
+  .showBio{
+    text-align: center;
+    button {
+      margin-top: 2rem;
+    }
   }
 }
 

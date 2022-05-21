@@ -23,7 +23,7 @@ onMounted(()=>{
   //setTimeout(()=>{
     CKEDITOR.replace( 'editor1', {
       toolbar : 'full',
-      filebrowserUploadUrl: '/api/uploader',
+      filebrowserUploadUrl: '/api/admin/uploader',
       extraPlugins: 'youtube',
       maxWidth: 1200,
       removePlugins: "exportpdf",
